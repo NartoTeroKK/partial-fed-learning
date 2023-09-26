@@ -35,13 +35,22 @@ def train(net, trainloader, optimizer, epochs, device: str):
     criterion = torch.nn.CrossEntropyLoss()
     net.train()
     net.to(device)
-    for _ in range(epochs):
+    for epoch in range(epochs):
+        total, correct, epoch_loss = 0, 0, 0.0
         for images, labels in trainloader:
             images, labels = images.to(device), labels.to(device)
             optimizer.zero_grad()
-            loss = criterion(net(images), labels)
+            outputs = net(images)
+            loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
+            # Metrics
+            epoch_loss += loss.item()
+            total += labels.size(0)
+            correct += (torch.max(outputs.data, 1)[1] == labels).sum().item()
+        epoch_loss /= len(trainloader.dataset)
+        epoch_acc = correct / total
+        print(f"Epoch {epoch+1}: train loss {epoch_loss}, accuracy {epoch_acc}")
 
 
 def test(net, testloader, device: str):
