@@ -55,19 +55,20 @@ def train(net, trainloader, optimizer, epochs, device: str):
 
 def test(net, testloader, device: str):
     """Validate the network on the entire test set.
-
     and report loss and accuracy.
     """
     criterion = torch.nn.CrossEntropyLoss()
-    correct, loss = 0, 0.0
+    correct, total, loss = 0, 0, 0.0
     net.eval()
     net.to(device)
     with torch.no_grad():
-        for data in testloader:
-            images, labels = data[0].to(device), data[1].to(device)
+        for images, labels in testloader:
+            images, labels = images.to(device), labels.to(device)
             outputs = net(images)
             loss += criterion(outputs, labels).item()
             _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
             correct += (predicted == labels).sum().item()
-    accuracy = correct / len(testloader.dataset)
+
+    accuracy = correct / total
     return loss, accuracy

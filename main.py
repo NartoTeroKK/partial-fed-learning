@@ -6,7 +6,7 @@ from pathlib import Path
 import flwr as fl
 import torch
 
-from dataset import prepare_dataset
+from dataset import prepare_dataset, prepare_comb_dataset
 from client import generate_client_fn
 from server import get_on_fit_config_fn, get_evaluate_fn, AggregateCustomMetricStrategy
 
@@ -17,25 +17,25 @@ def main(cfg: DictConfig):
     ## 1. Parse config and print experiment output dir
     print(OmegaConf.to_yaml(cfg))
 
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    print(f"Training on {device} using PyTorch {torch.__version__} and Flower {fl.__version__}")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Training on {device} using PyTorch {torch.__version__} and Flower {fl.__version__}\n")
 
     ## 2. Prepare dataset
-    trainloaders, validationloaders, testloader = prepare_dataset(cfg.num_clients, 
-                                                                  cfg.batch_size)
-    
+
+    trainloaders, validationloaders, testloader = prepare_dataset(cfg.num_clients, cfg.batch_size)
+
     ## 3. Define clients
+    
     client_fn = generate_client_fn(trainloaders, validationloaders, cfg.num_classes)
 
     ## 4. Define strategy
-    strategy = AggregateCustomMetricStrategy(
-        fraction_fit=0.01,
+    strategy =  AggregateCustomMetricStrategy(  # fl.server.strategy.FedAvg
         min_fit_clients=cfg.num_clients_per_round_fit,
-        fraction_evaluate=0.02,
         min_evaluate_clients=cfg.num_clients_per_round_eval,
         min_available_clients=cfg.num_clients,
         on_fit_config_fn=get_on_fit_config_fn(cfg.config_fit),
         evaluate_fn=get_evaluate_fn(cfg.num_classes, testloader),
+        on_evaluate_config_fn=None,
     )
     
     ## 5. Start Simulation
@@ -56,6 +56,34 @@ def main(cfg: DictConfig):
     with open(str(results_path), 'wb') as h:
         pickle.dump(results, h, protocol=pickle.HIGHEST_PROTOCOL)
 
+    
+
 
 if __name__ == '__main__':
     main()
+    
+    '''
+    trainloader, testloader = get_mnist_loaders(cfg.batch_size)
+
+    server = CentralizedServer(cfg.num_clients, cfg.batch_size, cfg.num_rounds, cfg.num_classes, trainloader, device)
+    print("Start training ...\n")
+    server.train(cfg.config_fit, device)
+    print("\nEvaluate model ...\n")
+    loss, accuracy = server.evaluate(testloader, device)
+    print("Loss: ", loss)
+    print("Accuracy: ", accuracy)
+
+___________________________________________________________
+
+
+    net = Net(cfg.num_classes).to(device)
+    model = Net(cfg.num_classes)
+    optimizer = torch.optim.SGD(model.parameters(), lr=cfg.config_fit.lr, momentum=cfg.config_fit.momentum)
+
+    print("Start training\n")
+    train(net, trainloader, optimizer, cfg.num_rounds, device)
+    print("Evaluate model\n")
+    loss, accuracy = test(net, testloader, device)
+    print("Loss: ", loss)
+    print("Accuracy: ", accuracy)
+    '''

@@ -25,6 +25,14 @@ def get_on_fit_config_fn(config: DictConfig):
     
     return fit_config_fn
 
+def get_on_evaluate_config_fn(config: DictConfig):
+
+    def evaluate_config_fn(server_round: int):
+
+        return {}
+
+    return evaluate_config_fn
+
 
 def get_evaluate_fn(num_classes: int, testloader):
 
@@ -32,7 +40,7 @@ def get_evaluate_fn(num_classes: int, testloader):
 
         model = Net(num_classes)
 
-        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         
         params_dict = zip(model.state_dict().keys(), parameters)
         state_dict = OrderedDict({k: torch.Tensor(v) for k, v in params_dict})

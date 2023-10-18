@@ -2,20 +2,24 @@
 from typing import Dict, Tuple
 import flwr as fl
 from flwr.common import Config, NDArrays, Scalar
+
 import torch
+import torch.nn as nn
+import torch.optim as optim
 
 from collections import OrderedDict
 
 from model import Net, train, test
 
-
 class FlowerClient(fl.client.NumPyClient):
     def __init__(self,
+                 cid: str,
                  trainloader,
                  valloader,
                  num_classes) -> None:
         super().__init__()
 
+        self.cid = cid
         self.trainloader = trainloader
         self.valloader = valloader
 
@@ -50,6 +54,7 @@ class FlowerClient(fl.client.NumPyClient):
         optimizer = torch.optim.SGD(self.model.parameters(), lr=lr, momentum=momentum)
 
         # do local training
+        print("Client CID: ", self.cid, " - trainset length: ", len(self.trainloader.dataset))
         train(self.model, self.trainloader, optimizer, epochs, self.device)
 
         return self.get_parameters({}), len(self.trainloader), {}
@@ -63,11 +68,13 @@ class FlowerClient(fl.client.NumPyClient):
 
         return float(loss), len(self.valloader), {'accuracy': accuracy}
     
+    
 
 def generate_client_fn(trainloaders, valloaders, num_classes):
 
     def client_fn(cid: str):
-        return FlowerClient(trainloader=trainloaders[int(cid)],
+        return FlowerClient(cid=cid,
+                            trainloader=trainloaders[int(cid)],
                             valloader=valloaders[int(cid)],
                             num_classes=num_classes)
 
