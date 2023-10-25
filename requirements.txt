@@ -1,0 +1,4 @@
+flwr
+torch
+torchvision
+hydra-core
