@@ -4,8 +4,6 @@ import flwr as fl
 from flwr.common import Config, NDArrays, Scalar
 
 import torch
-import torch.nn as nn
-import torch.optim as optim
 
 from collections import OrderedDict
 

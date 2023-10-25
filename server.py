@@ -1,5 +1,4 @@
 
-from numpy import exp
 from omegaconf import DictConfig
 import torch
 from collections import OrderedDict

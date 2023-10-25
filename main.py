@@ -6,7 +6,7 @@ from pathlib import Path
 import flwr as fl
 import torch
 
-from dataset import prepare_dataset, prepare_comb_dataset, dataset_femnist
+from dataset import prepare_dataset
 from client import generate_client_fn
 from server import get_on_fit_config_fn, get_evaluate_fn, AggregateCustomMetricStrategy
 

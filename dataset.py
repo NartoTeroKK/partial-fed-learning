@@ -2,12 +2,9 @@ from typing import List
 import torch
 from torchvision.datasets import MNIST
 from torchvision.transforms import ToTensor, Compose, Normalize
-from torch.utils.data import random_split, DataLoader, ConcatDataset
+from torch.utils.data import random_split, DataLoader
 
 from femnist import FEMNIST
-
-import os
-import json
 
 def get_femnist(data_path: str='./data'):
 
