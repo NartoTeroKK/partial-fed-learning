@@ -6,7 +6,7 @@ from pathlib import Path
 import flwr as fl
 import torch
 
-from dataset import prepare_dataset, prepare_comb_dataset
+from dataset import prepare_dataset, prepare_comb_dataset, dataset_femnist
 from client import generate_client_fn
 from server import get_on_fit_config_fn, get_evaluate_fn, AggregateCustomMetricStrategy
 
@@ -21,30 +21,32 @@ def main(cfg: DictConfig):
     print(f"Training on {device} using PyTorch {torch.__version__} and Flower {fl.__version__}\n")
 
     ## 2. Prepare dataset
-
+    #trainloaders, validationloaders, testloader = dataset_femnist(cfg.batch_size)
     trainloaders, validationloaders, testloader = prepare_dataset(cfg.num_clients, cfg.batch_size)
+    print("FEMNIST Dataset prepared\n")
 
     ## 3. Define clients
-    
     client_fn = generate_client_fn(trainloaders, validationloaders, cfg.num_classes)
 
     ## 4. Define strategy
     strategy =  AggregateCustomMetricStrategy(  # fl.server.strategy.FedAvg
-        min_fit_clients=cfg.num_clients_per_round_fit,
-        min_evaluate_clients=cfg.num_clients_per_round_eval,
+        min_fit_clients=cfg.num_clients,
+        min_evaluate_clients=cfg.num_clients,
         min_available_clients=cfg.num_clients,
         on_fit_config_fn=get_on_fit_config_fn(cfg.config_fit),
         evaluate_fn=get_evaluate_fn(cfg.num_classes, testloader),
         on_evaluate_config_fn=None,
+        accept_failures=False,
     )
     
-    ## 5. Start Simulation
+    ## 5. Start Simulation                                     
     history = fl.simulation.start_simulation(
         client_fn=client_fn,
         num_clients=cfg.num_clients,
         config=fl.server.ServerConfig(num_rounds=cfg.num_rounds),
         strategy=strategy,
-        client_resources={'num_cpus': cfg.num_cpus, 'num_gpus': cfg.num_gpus},  
+        #client_resources={'num_cpus': cfg.num_cpus, 'num_gpus': cfg.num_gpus},
+        #server=fl.server.Server(client_manager=fl.server.client_manager.SimpleClientManager(), strategy=strategy)
     )
 
     ## 6. Save your results

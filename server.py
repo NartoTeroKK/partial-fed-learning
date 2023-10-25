@@ -1,4 +1,5 @@
 
+from numpy import exp
 from omegaconf import DictConfig
 import torch
 from collections import OrderedDict
@@ -18,8 +19,15 @@ from model import Net, test
 def get_on_fit_config_fn(config: DictConfig):
 
     def fit_config_fn(server_round: int):
-
-
+        '''
+        k = 0.1
+        if server_round==1:
+            lr = config.lr
+        else:
+            lr = config.lr * exp(-k * server_round)
+        print("Server round: ", server_round, " - lr: ", lr)
+        '''
+        
         return {'lr': config.lr, 'momentum': config.momentum,
                 'local_epochs': config.local_epochs}
     
