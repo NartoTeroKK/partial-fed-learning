@@ -2,3 +2,4 @@ outputs
 data
 __pycache__
 .vscode
+myfemnist.py

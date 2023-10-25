@@ -4,10 +4,7 @@ from torchvision.datasets import MNIST
 from torchvision.transforms import ToTensor, Compose, Normalize
 from torch.utils.data import random_split, DataLoader, ConcatDataset
 
-from fedlab.contrib.dataset.femnist import FemnistDataset
-
 from femnist import FEMNIST
-from myfemnist import MyFEMNIST
 
 import os
 import json
