@@ -1,4 +1,4 @@
-flwr
+flwr["simulation"]
 torch
 torchvision
 hydra-core
